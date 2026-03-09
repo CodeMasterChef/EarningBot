@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "poolx-bot",
       script: "dist/index.js",
-      cwd: "/Volumes/CORSAIR/Disk/ForFun/EarningBot",
+      cwd: __dirname,
       restart_delay: 5000,
       max_restarts: 50,
       autorestart: true,

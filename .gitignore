@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .env
+.env.vps
 data/state.json
 data/debug-*
 src/debug-scraper.ts
