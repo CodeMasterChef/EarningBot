@@ -1,0 +1,29 @@
+{
+  "name": "earningbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test:scraper": "tsx src/test-scraper.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "node-cron": "^4.2.1",
+    "node-telegram-bot-api": "^0.67.0",
+    "playwright": "^1.58.2",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.5",
+    "@types/node-cron": "^3.0.11",
+    "@types/node-telegram-bot-api": "^0.64.14",
+    "tsx": "^4.21.0"
+  }
+}

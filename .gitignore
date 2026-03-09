@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+data/state.json
+data/debug-*
+src/debug-scraper.ts
+src/test-scraper.ts
