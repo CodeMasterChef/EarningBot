@@ -18,6 +18,16 @@ export function setLastScanInfo(time: Date, count: number): void {
 export function startBot(botToken: string): TelegramBot {
   const bot = new TelegramBot(botToken, { polling: true });
 
+  // Register command menu in Telegram
+  bot.setMyCommands([
+    { command: "scan", description: "Scan PoolX ngay lập tức" },
+    { command: "list", description: "Xem danh sách đã tham gia" },
+    { command: "status", description: "Xem trạng thái bot" },
+    { command: "joined", description: "Đánh dấu đã tham gia (VD: /joined BSB)" },
+    { command: "unjoin", description: "Xoá khỏi danh sách (VD: /unjoin BSB)" },
+    { command: "help", description: "Hướng dẫn sử dụng" },
+  ]);
+
   bot.onText(/\/joined\s+(.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const name = match?.[1]?.trim().toUpperCase();
