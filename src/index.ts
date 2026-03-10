@@ -3,6 +3,7 @@ import cron from "node-cron";
 import { scrapeOngoingEvents } from "./scraper";
 import { sendEventNotification } from "./notifier";
 import { loadState, saveState, isKnown, isJoined, markKnown } from "./state";
+import { PoolXEvent } from "./types";
 import { startBot, setLastScanInfo } from "./bot";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
@@ -21,10 +22,15 @@ const startTime = new Date();
 // Start Telegram bot for commands
 const bot = startBot(BOT_TOKEN);
 
-async function scan(): Promise<void> {
+interface ScanResult {
+  events: PoolXEvent[];
+  newCount: number;
+}
+
+async function scan(): Promise<ScanResult | null> {
   if (isScanning) {
     console.log("[Scan] Already running, skipping...");
-    return;
+    return null;
   }
 
   isScanning = true;
@@ -68,19 +74,59 @@ async function scan(): Promise<void> {
     console.log(
       `[Scan] Done. ${newCount} new events notified, ${events.length} total ongoing.`
     );
+    return { events, newCount };
   } catch (error) {
     console.error("[Scan] Error:", error);
+    return null;
   } finally {
     isScanning = false;
   }
 }
 
-// /scan command
+// /scan command — show all ongoing pools
 bot.onText(/\/scan/, async (msg) => {
   const chatId = msg.chat.id;
   await bot.sendMessage(chatId, "🔍 Đang scan PoolX...");
-  await scan();
-  await bot.sendMessage(chatId, "✅ Scan hoàn tất.");
+
+  const result = await scan();
+
+  if (!result) {
+    await bot.sendMessage(chatId, "⚠️ Scan đang chạy hoặc lỗi. Thử lại sau.");
+    return;
+  }
+
+  if (result.events.length === 0) {
+    await bot.sendMessage(chatId, "📭 Không có pool nào đang diễn ra.");
+    return;
+  }
+
+  const state = loadState();
+
+  const lines = [
+    `📋 <b>PoolX Ongoing (${result.events.length} pools)</b>`,
+    ``,
+  ];
+
+  for (const event of result.events) {
+    const tokenName = event.name.toUpperCase();
+    const joined = isJoined(state, tokenName);
+    const status = joined ? "✅ Đã tham gia" : "🔸 Chưa tham gia";
+
+    lines.push(
+      `<b>${event.name}</b> — ${event.poolType}`,
+      `  💰 ${event.totalReward}`,
+      `  ${status}`,
+      `  🔗 <a href="${event.url}">Xem</a>`,
+      ``
+    );
+  }
+
+  lines.push(`🆕 ${result.newCount} pool mới được thông báo`);
+
+  await bot.sendMessage(chatId, lines.join("\n"), {
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+  });
 });
 
 // Schedule periodic scan
