@@ -1,7 +1,7 @@
 import "dotenv/config";
 import cron from "node-cron";
 import { scrapeOngoingEvents } from "./scraper";
-import { sendEventNotification } from "./notifier";
+import { sendEventNotification, sendEventCard } from "./notifier";
 import { loadState, saveState, isKnown, isJoined, markKnown } from "./state";
 import { PoolXEvent } from "./types";
 import { startBot, setLastScanInfo } from "./bot";
@@ -102,31 +102,17 @@ bot.onText(/\/scan/, async (msg) => {
 
   const state = loadState();
 
-  const lines = [
-    `📋 <b>PoolX Ongoing (${result.events.length} pools)</b>`,
-    ``,
-  ];
+  await bot.sendMessage(
+    chatId,
+    `📋 <b>PoolX Ongoing — ${result.events.length} pools</b>`,
+    { parse_mode: "HTML" }
+  );
 
   for (const event of result.events) {
-    const tokenName = event.name.toUpperCase();
-    const joined = isJoined(state, tokenName);
-    const status = joined ? "✅ Đã tham gia" : "🔸 Chưa tham gia";
-
-    lines.push(
-      `<b>${event.name}</b> — ${event.poolType}`,
-      `  💰 ${event.totalReward}`,
-      `  ${status}`,
-      `  🔗 <a href="${event.url}">Xem</a>`,
-      ``
-    );
+    const key = `${event.name.toUpperCase()}|${event.poolType}`;
+    const joined = isJoined(state, event.name.toUpperCase());
+    await sendEventCard(bot, chatId, event, key, joined);
   }
-
-  lines.push(`🆕 ${result.newCount} pool mới được thông báo`);
-
-  await bot.sendMessage(chatId, lines.join("\n"), {
-    parse_mode: "HTML",
-    disable_web_page_preview: true,
-  });
 });
 
 // Schedule periodic scan

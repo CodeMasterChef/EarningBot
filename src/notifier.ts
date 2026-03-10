@@ -40,3 +40,23 @@ export async function sendEventNotification(
     return false;
   }
 }
+
+export async function sendEventCard(
+  bot: TelegramBot,
+  chatId: string | number,
+  event: PoolXEvent,
+  eventKey: string,
+  joined: boolean
+): Promise<void> {
+  const button = joined
+    ? { text: "↩️ Hoàn tác", callback_data: `undo:${eventKey}` }
+    : { text: "✅ Đã tham gia", callback_data: `joined:${eventKey}` };
+
+  await bot.sendMessage(chatId, formatEventMessage(event), {
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+    reply_markup: {
+      inline_keyboard: [[button]],
+    },
+  });
+}
